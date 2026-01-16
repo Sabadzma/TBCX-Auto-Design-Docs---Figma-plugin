@@ -68,7 +68,8 @@ INSTRUCTIONS (CRITICAL – FOLLOW EXACTLY):
   "variants": [
     {
       "name": "",
-      "usage": ""
+      "usage": "",
+      "nodeId": ""
     }
   ],
   "dos": [
@@ -118,7 +119,8 @@ INSTRUCTIONS (CRITICAL – FOLLOW EXACTLY):
     - If not clearly applicable, return empty strings
 
 - variants:
-  - Include all visual / semantic variants found in the component
+  - Include all visual / semantic variants found in the component. Don't write variant combinations in a single item. Write each variant separately. 
+  - For each variant select a single variant as an example from the figma component, get its node ID and include it in json.
   - usage should describe *when to use* and explain the usage purpose, not how it’s built
   - If there is a variant group callaed "State" Don't include it in the variants section of output json
 
@@ -136,7 +138,7 @@ Return ONLY the JSON object.
 Any text outside JSON is a failure.
 
 Here is the link to the component:
-{Place Figma component link here}`;
+`;
 figma.ui.onmessage = (msg) => __awaiter(this, void 0, void 0, function* () {
     if (msg.type === "OPEN_URL") {
         figma.openExternal(msg.url);
@@ -202,7 +204,10 @@ function renderObject(obj, scope) {
                 }
             }
             else {
-                yield renderPrimitive(key, value, scope);
+                // Skip nodeId - it's used for instance creation, not text display
+                if (key !== "nodeId") {
+                    yield renderPrimitive(key, value, scope);
+                }
             }
         }
     });
@@ -215,6 +220,27 @@ function renderPrimitive(key, value, scope) {
         yield figma.loadFontAsync(node.fontName);
         node.characters =
             value === undefined || value === "" ? "N/A" : String(value);
+    });
+}
+function renderNodeExample(nodeId, scope) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const displayFrame = findNodeByName(scope, "exampleDisplay");
+        if (!displayFrame || displayFrame.type !== "FRAME")
+            return;
+        // Clear existing content from exampleDisplay
+        const frameNode = displayFrame;
+        for (const child of [...frameNode.children]) {
+            child.remove();
+        }
+        // Get node by ID (use async version for dynamic-page document access)
+        const sourceNode = yield figma.getNodeByIdAsync(nodeId);
+        if (!sourceNode)
+            return;
+        // Create instance if it's a component
+        if (sourceNode.type === "COMPONENT") {
+            const instance = sourceNode.createInstance();
+            frameNode.appendChild(instance);
+        }
     });
 }
 function renderArray(sectionName, items, scope) {
@@ -240,7 +266,17 @@ function renderArray(sectionName, items, scope) {
         for (const item of items) {
             const clone = template.clone();
             list.appendChild(clone);
-            yield renderObject(item, clone);
+            // Use special renderer for dependencies to create hyperlinks
+            if (sectionName === "dependencies") {
+                yield renderDependency(item, clone);
+            }
+            else {
+                yield renderObject(item, clone);
+                // Render component instance if nodeId is provided
+                if (item.nodeId) {
+                    yield renderNodeExample(item.nodeId, clone);
+                }
+            }
         }
         template.remove();
     });

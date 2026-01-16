@@ -57,7 +57,8 @@ INSTRUCTIONS (CRITICAL – FOLLOW EXACTLY):
   "variants": [
     {
       "name": "",
-      "usage": ""
+      "usage": "",
+      "nodeId": ""
     }
   ],
   "dos": [
@@ -107,7 +108,8 @@ INSTRUCTIONS (CRITICAL – FOLLOW EXACTLY):
     - If not clearly applicable, return empty strings
 
 - variants:
-  - Include all visual / semantic variants found in the component
+  - Include all visual / semantic variants found in the component. Don't write variant combinations in a single item. Write each variant separately. 
+  - For each variant select a single variant as an example from the figma component, get its node ID and include it in json.
   - usage should describe *when to use* and explain the usage purpose, not how it’s built
   - If there is a variant group callaed "State" Don't include it in the variants section of output json
 
@@ -125,4 +127,3 @@ Return ONLY the JSON object.
 Any text outside JSON is a failure.
 
 Here is the link to the component:
-{Place Figma component link here}
