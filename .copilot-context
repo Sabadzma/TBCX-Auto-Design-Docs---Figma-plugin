@@ -1,0 +1,252 @@
+# Figma Plugin – Design System Documentation Generator
+## Copilot Context (Authoritative)
+
+You are working on a Figma plugin that renders design system component documentation into a Figma frame using structured JSON.
+
+This document defines the **intent, architecture, constraints, and contracts** of the project.
+Do not invent behavior not explicitly described here.
+Do not simplify or “improve” design decisions — they are intentional.
+
+---
+
+## 1. What This Plugin Does
+
+- Accepts **JSON input** (generated externally by an LLM)
+- Operates on **one selected Figma FRAME**
+- Traverses all descendants recursively
+- Finds TEXT layers by **exact name match**
+- Replaces their text content with JSON values
+- Applies hyperlinks where specified
+- Uses `"N/A"` for empty or missing values
+
+This plugin is:
+- Deterministic
+- Data-driven
+- Layout-agnostic
+- Order-independent
+
+---
+
+## 2. Core Principles (Do Not Violate)
+
+### Naming is the Contract
+- JSON keys == Figma TEXT layer names
+- Matching is exact and case-sensitive
+- No fuzzy matching
+- No inference
+
+### Order Does Not Matter
+- Section order in the template may change
+- JSON array order does not matter
+- Matching is name-based only
+
+### Layout Does Not Matter
+- Frames/groups may exist for visual grouping
+- Frames do NOT affect logic
+- Traversal must recurse through all nodes
+
+---
+
+## 3. JSON Root Structure (Locked)
+
+```json
+{
+  "header": {},
+  "properties": [],
+  "variants": [],
+  "dos": [],
+  "donts": [],
+  "dependencies": []
+}
+4. Header Section
+json
+Copy code
+"header": {
+  "componentName": "string",
+  "libraryName": "string",
+  "componentLayerName": "string",
+  "description": "string"
+}
+Expected TEXT layer names:
+
+componentName
+
+libraryName
+
+componentLayerName
+
+description
+
+5. Properties Section
+json
+Copy code
+"properties": [
+  {
+    "name": "string",
+    "type": "boolean | variant | slot | text",
+    "values": ["string"],
+    "appliedTo": {
+      "layerName": "string",
+      "nodeId": "string"
+    }
+  }
+]
+Rendering Rules
+Each property is rendered into one row/frame
+
+Child TEXT layers must be named:
+
+name
+
+type
+
+values
+
+appliedTo
+
+Applied-To Rule (Important)
+appliedTo is rendered into a single TEXT node
+
+Text content = layerName
+
+A hyperlink is applied using nodeId
+
+There is NO separate link text layer
+
+6. Variants Section
+json
+Copy code
+"variants": [
+  {
+    "name": "string",
+    "usage": "string"
+  }
+]
+Expected TEXT layer names:
+
+name
+
+usage
+
+7. Do’s / Don’ts Sections
+json
+Copy code
+{
+  "title": "string",
+  "description": "string"
+}
+Expected TEXT layer names:
+
+title
+
+description
+
+8. Dependencies Section
+json
+Copy code
+"dependencies": [
+  {
+    "name": "string",
+    "link": "string"
+  }
+]
+Dependency Rule (Important)
+Only ONE TEXT node is used
+
+TEXT content = name
+
+Hyperlink = link
+
+No separate “link” text node
+
+Expected TEXT layer name:
+
+name
+
+9. Empty / Missing Values (Intentional)
+If a value is:
+
+Empty string
+
+Missing
+
+Empty array
+
+The plugin MUST set the TEXT content to:
+
+css
+Copy code
+N/A
+This is not an error state.
+
+10. Traversal Algorithm
+Depth-first recursive traversal
+
+Start from selected root FRAME
+
+Visit ALL descendants
+
+Process only TEXT nodes for replacement
+
+Frames/groups are traversal containers only
+
+11. Hyperlink Behavior
+Applied-To & Dependencies
+ts
+Copy code
+https://www.figma.com/file/${figma.fileKey}?node-id=${nodeId}
+Applied via TextNode.hyperlink
+
+Text content remains human-readable
+
+12. Plugin Architecture
+Files:
+
+code.ts → Figma plugin runtime
+
+ui.html → JSON input UI
+
+manifest.json
+
+tsconfig.json
+
+Runtime:
+
+Uses figma.ui.onmessage
+
+Requires figma.loadFontAsync before text edits
+
+Requires exactly one FRAME selected
+
+13. Explicit Non-Goals
+DO NOT:
+
+Add AI or inference inside the plugin
+
+Change layout or auto-layout
+
+Guess mappings
+
+Enforce schema creatively
+
+Modify styles or tokens
+
+14. Mental Model
+JSON is the source of truth
+Figma is a rendering target
+Layer names are the contract
+Layout and order are irrelevant
+
+Follow the contract exactly.
+
+yaml
+Copy code
+
+---
+
+If you want next, I can:
+- Split this into **agent-specific roles** (UI agent, traversal agent, schema agent)
+- Create a **JSON Schema file** to pair with this
+- Add a **Copilot prompt snippet** for “continue implementation safely”
+
+Just tell me.

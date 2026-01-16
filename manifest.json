@@ -1,0 +1,13 @@
+{
+    "name": "TBCX Auto Design Docs",
+    "id": "tbcx-design-docs",
+    "api": "1.0.0",
+    "main": "code.js",
+    "ui": "ui.html",
+    "editorType": ["figma"],
+    "id": "1593969122000260438",
+    "documentAccess": "dynamic-page",
+      "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+  }

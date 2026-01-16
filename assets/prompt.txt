@@ -1,0 +1,128 @@
+You are connected to Figma via MCP.
+
+TASK:
+Analyze the Figma component provided via URL and generate structured, useful and clear design documentation.
+
+INPUT:
+I will provide a Figma component or component set URL.
+
+INSTRUCTIONS (CRITICAL – FOLLOW EXACTLY):
+
+1. Use Figma MCP to inspect the provided component in detail.
+   You MUST extract information directly from the Figma file, including:
+   - Component name
+   - Component set name (if applicable)
+   - Library name (Figma file or library title)
+   - Component root layer name
+   - Component properties (boolean, variant, slot, text)
+   - Available property values
+   - Variant names
+   - Variant usage inferred from visual design and naming
+   - Child components used inside the component (dependencies)
+   - Layer names that properties are applied to (when determinable)
+   - Read component descriptions, variant descriptions and use them to get more context. Don't directly copy and paste variant descriptions. Use them just for additional context.
+
+2. If a specific value cannot be determined with confidence:
+   - Leave the field empty
+   - Do NOT guess
+   - Do NOT hallucinate
+
+3. Output MUST be a single valid JSON object.
+   - NO prose
+   - NO markdown
+   - NO explanations
+   - NO comments
+   - NO trailing commas
+
+4. The JSON MUST strictly follow this structure and naming:
+
+{
+  "header": {
+    "componentName": "",
+    "libraryName": "",
+    "componentLayerName": "",
+    "description": ""
+  },
+  "properties": [
+    {
+      "name": "",
+      "type": "boolean | variant | slot | text",
+      "values": "",
+      "appliedTo": {
+        "layerName": "",
+        "nodeId": ""
+      }
+    }
+  ],
+  "variants": [
+    {
+      "name": "",
+      "usage": ""
+    }
+  ],
+  "dos": [
+    {
+      "title": "",
+      "description": ""
+    }
+  ],
+  "donts": [
+    {
+      "title": "",
+      "description": ""
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "",
+      "link": ""
+    }
+  ]
+}
+
+5. FIELD-SPECIFIC RULES:
+
+- header.componentName  
+  → Human-readable component name (e.g. “Button”)
+
+- header.libraryName  
+  → Figma file or library name where the component lives
+
+- header.componentLayerName  
+  → Exact root layer or component set name in Figma
+
+- header.description  
+  → 1–4 sentence concise explanation of purpose and main usage areas. Do not describe what properties does this component have. Instead focus more on what it serves and how it helps users.
+
+- properties:
+  - type MUST be one of: boolean, variant, slot, text
+  - values:
+    - boolean → "true, false"
+    - variant → list all available variant values.
+	    - Don't separate each value as a separate string in the Json and don't wrap them in brackets. Instead combine them in a single string and use format like this: "values": "Value one, Value two, Value three"
+    - slot → empty array if no predefined values, print N/A
+    - text → empty array, print N/A
+  - appliedTo:
+    - If the property affects a specific layer(For example: if boolean is tied to a specific layer), include its name and link to it
+    - If not clearly applicable, return empty strings
+
+- variants:
+  - Include all visual / semantic variants found in the component
+  - usage should describe *when to use* and explain the usage purpose, not how it’s built
+  - If there is a variant group callaed "State" Don't include it in the variants section of output json
+
+- dos / donts:
+  - Generate only rules that are clearly implied by the design
+  - Prefer fewer, high-quality entries over generic advice
+  - Include as much context as possible. Avoid general, non-specific do's and don'ts that is obvious already. 
+
+- dependencies:
+  - Include all nested components (icons, avatars, loaders, etc.)
+  - link MUST be a valid Figma URL to the dependency component when possible.
+
+6. OUTPUT CONSTRAINT:
+Return ONLY the JSON object.
+Any text outside JSON is a failure.
+
+Here is the link to the component:
+{Place Figma component link here}
